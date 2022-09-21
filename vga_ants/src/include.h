@@ -10,7 +10,7 @@
 // ----------------------------------------------------------------------------
 
 #include "../../global.h"	// global common definitions
-#include "../vga.pio.h"		// VGA PIO compilation
+#include "../../_picovga/vga.pio.h"		// VGA PIO compilation
 
 // main
 #include "main.h"		// main code

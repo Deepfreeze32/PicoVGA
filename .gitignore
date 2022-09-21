@@ -1,0 +1,12 @@
+# Built files we don't want to commit
+build/
+
+# macOS stuff
+.DS_Store
+
+## emacs stuff
+*~
+\#*\#
+
+# VS-Code
+*.code-workspace

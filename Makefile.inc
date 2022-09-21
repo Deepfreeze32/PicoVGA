@@ -349,7 +349,8 @@ NM = ${COMP}nm
 SZ = ${COMP}size
 
 # uf2
-UF = ../_exe/elf2uf2.exe
+UF = $$PICO_SDK_PATH/tools/elf2uf2/elf2uf2
+# UF = ../_exe/elf2uf2.exe
 
 ##############################################################################
 # File list

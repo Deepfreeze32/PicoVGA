@@ -2,13 +2,6 @@
 #   make all ... compile TARGET
 
 ##############################################################################
-# Input files
-
-# ASM source files
-ASRC +=		\
-${TARGET}.S	\
-
-##############################################################################
 # Configuration
 
 # destination filename
@@ -111,7 +104,7 @@ LDFLAGS += -Wl,-nostdlib
 LDLAGS += -Wl,--build-id=none
 
 # symbol map
-LDFLAGS += -Wl,-Map=./$(TARGET).map
+LDFLAGS += -Wl,-Map=$(TEMP)/$(BLD).map
 
 # eliminate unused sections
 LDFLAGS += -Wl,--gc-sections,--relax
@@ -163,12 +156,11 @@ ALLOBJ = $(addprefix $(TEMP)/, $(addsuffix .o, $(ALLBASE)))
 
 clean:
 	@rm -rf $(TEMP)
-	@rm -f ./$(TARGET).bin ./$(TARGET).hex ./$(TARGET).lst ./$(TARGET).map ./$(TARGET).sym ./$(TARGET).siz
 
 ##############################################################################
 # Compile all (use "make all")
 
-all: createdirs elf bin hex lst sym siz
+all: createdirs boot2_generic_03h boot2_is25lp080 boot2_usb_blinky boot2_w25q080 boot2_w25x10cl
 
 ##############################################################################
 # Create temporary directory
@@ -176,90 +168,53 @@ all: createdirs elf bin hex lst sym siz
 createdirs:
 	@mkdir -p $(TEMP)
 
-##############################################################################
-# Dependencies of output files
+#############################################################################
+# Build the boot2_generic_03h target
 
-elf: $(TEMP)/$(TARGET).elf
-bin: ./$(TARGET).bin
-hex: ./$(TARGET).hex
-lst: ./$(TARGET).lst
-sym: ./$(TARGET).sym
-siz: ./$(TARGET).siz
+boot2_generic_03h: createdirs
+	$(eval BLD = boot2_generic_03h)
+	@$(AS) $(CFLAGS) $(AFLAGS) -c $(BLD).S -o $(TEMP)/$(BLD).o
+	@$(OC) -O binary $(TEMP)/$(BLD).o $(TEMP)/$(BLD).elf
+	@$(OC) -O ihex $(TEMP)/$(BLD).o $(TEMP)/$(BLD).hex
+	@$(OD) -d -S $(TEMP)/$(BLD).o >  $(TEMP)/$(BLD).lst
+	@$(NM) -n $(TEMP)/$(BLD).o > $(TEMP)/$(BLD).sym
+	@$(SZ) $(TEMP)/$(BLD).o > $(TEMP)/$(BLD).siz
 
-##############################################################################
-# Create .bin file from .elf file
+boot2_is25lp080: createdirs
+	$(eval BLD = boot2_is25lp080)
+	@$(AS) $(CFLAGS) $(AFLAGS) -c $(BLD).S -o $(TEMP)/$(BLD).o
+	@$(OC) -O binary $(TEMP)/$(BLD).o $(TEMP)/$(BLD).elf
+	@$(OC) -O ihex $(TEMP)/$(BLD).o $(TEMP)/$(BLD).hex
+	@$(OD) -d -S $(TEMP)/$(BLD).o >  $(TEMP)/$(BLD).lst
+	@$(NM) -n $(TEMP)/$(BLD).o > $(TEMP)/$(BLD).sym
+	@$(SZ) $(TEMP)/$(BLD).o > $(TEMP)/$(BLD).siz
 
-./$(TARGET).bin: $(TEMP)/$(TARGET).elf
-	@echo "    bin		 $@"
-	@$(OC) -O binary $< $@
+boot2_usb_blinky: createdirs
+	$(eval BLD = boot2_usb_blinky)
+	@$(AS) $(CFLAGS) $(AFLAGS) -c $(BLD).S -o $(TEMP)/$(BLD).o
+	@$(OC) -O binary $(TEMP)/$(BLD).o $(TEMP)/$(BLD).elf
+	@$(OC) -O ihex $(TEMP)/$(BLD).o $(TEMP)/$(BLD).hex
+	@$(OD) -d -S $(TEMP)/$(BLD).o >  $(TEMP)/$(BLD).lst
+	@$(NM) -n $(TEMP)/$(BLD).o > $(TEMP)/$(BLD).sym
+	@$(SZ) $(TEMP)/$(BLD).o > $(TEMP)/$(BLD).siz
 
-##############################################################################
-# Create .hex file from .elf file
+boot2_w25q080: createdirs
+	$(eval BLD = boot2_w25q080)
+	@$(AS) $(CFLAGS) $(AFLAGS) -c $(BLD).S -o $(TEMP)/$(BLD).o
+	@$(OC) -O binary $(TEMP)/$(BLD).o $(TEMP)/$(BLD).elf
+	@$(OC) -O ihex $(TEMP)/$(BLD).o $(TEMP)/$(BLD).hex
+	@$(OD) -d -S $(TEMP)/$(BLD).o >  $(TEMP)/$(BLD).lst
+	@$(NM) -n $(TEMP)/$(BLD).o > $(TEMP)/$(BLD).sym
+	@$(SZ) $(TEMP)/$(BLD).o > $(TEMP)/$(BLD).siz
 
-./$(TARGET).hex: $(TEMP)/$(TARGET).elf
-	@echo "    hex		 $@"
-	@$(OC) -O ihex $< $@
-
-##############################################################################
-# Create .lst file from .elf file
-
-./$(TARGET).lst: $(TEMP)/$(TARGET).elf
-	@echo "    lst		 $@"
-	@$(OD) -d -S $< > $@
-
-##############################################################################
-# Create .sym file from .elf file
-
-./$(TARGET).sym: $(TEMP)/$(TARGET).elf
-	@echo "    sym		 $@"
-	@$(NM) -n $< > $@
-
-##############################################################################
-# Create .siz file from .elf file
-
-./$(TARGET).siz: $(TEMP)/$(TARGET).elf
-	@echo "    siz		 $@"
-	@$(SZ) $< > $@
-
-##############################################################################
-# Create .o files from .c files
-
-define CC_TEMP
-$(TEMP)/$(notdir $(basename $(1))).o : $(1) $(MAKEFILE)
-	@echo "    CC		 $$<"
-	@$(CC) $$(CFLAGS) -std=gnu99 -c $$< -o $$@
-endef
-
-$(foreach src, $(CSRC), $(eval $(call CC_TEMP, $(src))))
-
-##############################################################################
-# Create .o files from .cpp files
-
-define CPP_TEMP
-$(TEMP)/$(notdir $(basename $(1))).o : $(1) $(MAKEFILE)
-	@echo "    C++		 $$<"
-	@$(CPP) $$(CPPFLAGS) -c $$< -o $$@
-endef
-
-$(foreach src, $(SRC), $(eval $(call CPP_TEMP, $(src))))
-
-##############################################################################
-# Create .o files from .S files
-
-define AS_TEMP
-$(TEMP)/$(notdir $(basename $(1))).o : $(1) $(MAKEFILE)
-	@echo "    ASM		 $$<"
-	@$(AS) $$(CFLAGS) $$(AFLAGS) -c $$< -o $$@
-endef
-
-$(foreach src, $(ASRC), $(eval $(call AS_TEMP, $(src))))
-
-##############################################################################
-# Create .elf from .o files
-
-$(TEMP)/$(TARGET).elf: $(ALLOBJ) $(MAKEFILE) $(LDSCRIPT)
-	@echo "    ld		 $@"
-	@$(LD) $(LDFLAGS) $(ALLOBJ) -o $@
+boot2_w25x10cl: createdirs
+	$(eval BLD = boot2_w25x10cl)
+	@$(AS) $(CFLAGS) $(AFLAGS) -c $(BLD).S -o $(TEMP)/$(BLD).o
+	@$(OC) -O binary $(TEMP)/$(BLD).o $(TEMP)/$(BLD).elf
+	@$(OC) -O ihex $(TEMP)/$(BLD).o $(TEMP)/$(BLD).hex
+	@$(OD) -d -S $(TEMP)/$(BLD).o >  $(TEMP)/$(BLD).lst
+	@$(NM) -n $(TEMP)/$(BLD).o > $(TEMP)/$(BLD).sym
+	@$(SZ) $(TEMP)/$(BLD).o > $(TEMP)/$(BLD).siz
 
 ##############################################################################
 # Head dependencies, to recompile C after changing H
@@ -271,4 +226,4 @@ endif
 ##############################################################################
 # List of dependencies not creating files
 
-.PHONY: clean all createdirs elf bin hex lst sym siz
+.PHONY: clean all createdirs boot2_generic_03h boot2_is25lp080 boot2_usb_blinky boot2_w25q080 boot2_w25x10cl
